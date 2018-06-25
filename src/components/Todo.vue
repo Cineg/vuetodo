@@ -1,36 +1,43 @@
 <template>
     <div class="todo">
-        <input type="text" class="todo-input" placeholder="What do I do today?" v-model="newTodo" @keyup.enter="addTodo">
+        <input type="text" class="todo-input" placeholder="What do I do today?" v-model="newTodo" @keyup.enter="addTodo" >
         <div class="todo-list">
             <div class="single-todo" v-for="(todo, deleteID) in filteredTodos" :key="todo.id">
-                <div>
-                    <div class="check uncheck" @click="uncheck(todo)" v-if="todo.completed">
-                    <i class="fas fa-times"></i></div>
-                    <div class="check" @click="check(todo)" v-else><i class="fas fa-check"></i></div>
-                    <span v-bind:class="{todocompleted: todo.completed}" v-if="!todo.editable" @dblclick="editTodo(todo)" class="todoTitle" 
-                    >
-                        {{todo.title}}
-                    </span> 
-                    <input type="text" v-model="todo.title" v-if="todo.editable" @blur="doneEdit(todo)" @keyup.enter="doneEdit(todo)" class="editTitle" v-focus>
+                <div class="upper-todo-item">
+                    <div>
+                        <div class="check uncheck" @click="uncheck(todo)" v-if="todo.completed">
+                        <i class="fas fa-times"></i></div>
+                        <div class="check" @click="check(todo)" v-else><i class="fas fa-check"></i></div>
+                        <span v-bind:class="{todocompleted: todo.completed}" v-if="!todo.editable" @dblclick="editTodo(todo)" class="todoTitle" 
+                        >{{todo.title}} </span> 
+                        <input type="text" v-model="todo.title" v-if="todo.editable" @blur="doneEdit(todo)" @keyup.enter="doneEdit(todo)" class="editTitle" v-focus>
+                    </div>
+
+                    <div>
+                        <button class="editButton" v-on:click="editTodo(todo)" v-if="!todo.editable">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button class="editButton editButton-grey" v-on:click="editTodo(todo)" v-else disabled>
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+
+                        <button class="deleteButton" @click="deleteTodo(deleteID)">
+                            <i class="far fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
-
-                <div>
-                    <button class="editButton" v-on:click="editTodo(todo)" v-if="!todo.editable">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                    <button class="editButton editButton-grey" v-on:click="editTodo(todo)" v-else disabled>
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-
-                    <button class="deleteButton" @click="deleteTodo(deleteID)">
-                        <i class="far fa-trash-alt"></i>
-                    </button>
+                <div class="lower-todo-item">
+                    <div class="tag" v-for="(tag, deleteTagID) in todo.tags" >
+                        <span class="tagName"> {{tag}} </span>
+                        <div class="deleteIcon" v-on:click="deleteTag(deleteID, deleteTagID)"><i class="fas fa-times"></i></div>
+                    </div>
                 </div>
             </div>
         </div>
         <button class="filter" v-on:click="showTodosFiltered('all')" :class="{filterActive : this.showTodos=='all'}"><i class="fas fa-filter"></i> <span>All</span></button>
         <button class="filter" v-on:click="showTodosFiltered('active')" :class="{filterActive : this.showTodos=='active'}"><i class="fas fa-filter"></i> <span>To do</span></button>
         <button class="filter" v-on:click="showTodosFiltered('done')" :class="{filterActive : this.showTodos=='done'}"><i class="fas fa-filter"></i>  <span>Done</span></button>
+    
     </div>
    
 </template>
@@ -50,12 +57,14 @@ export default {
                     'title': 'Take over the world',
                     'completed': false,
                     'editable': false,
+                    'tags': ['main', 'kek', 'asap'],
                 },
                 {
                     'id': 2,
                     'title': 'Find a job',
                     'completed': false,
                     'editable': false,
+                    'tags': ['main', 'asap', '15k'],
                 },
             ]
         }
@@ -66,14 +75,25 @@ export default {
             if(this.newTodo.trim().length == 0){
                 return
             }
-            //adding todo from input
-            this.todos.push({
+
+            //regular expresion for tags
+            let regexTag = /( #[a-zA-z0-9]*)/gs;
+            let tagarray;
+            let tags;
+            //check tags 
+           while((tagarray = regexTag.exec(this.newTodo))!=null){
+                tagarray = tagarray[0];
+                console.log(tagarray);
+            }
+                           
+               this.todos.push({
                 id: this.temporaryId,
                 //input is linked to newTodo 
                 title: this.newTodo,
                 completed: false,
                 editable: false,
-            })
+                tags: tagarray,
+               })
             this.newTodo = '';
             this.temporaryId +=1; 
         },
@@ -99,7 +119,10 @@ export default {
         },
         showTodosFiltered(filter){
             this.showTodos = filter;
-        }
+        },
+        deleteTag(deleteID, deleteTagID){
+            this.todos[deleteID].tags.splice(deleteTagID, 1);
+        },
     },
     computed: {
        filteredTodos(){
@@ -111,6 +134,13 @@ export default {
            } else if(this.showTodos == 'done'){
                return this.todos.filter(todo => todo.completed)
            }
+       },
+       filteredByTags(){
+           //TODO
+           //get to tags
+            let todo = this.todos.map(todo => todo.tags);
+            let tags = todo.toString();
+            return tags;
        }
     },
     directives: {
@@ -161,14 +191,20 @@ export default {
         text-align: left;
         padding: 15px;
         font-size: 18px;
-        display: flex;
-        justify-content: space-between;
         align-items: center;
         -webkit-box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.2);
         -moz-box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.2);
         box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.2);
         margin: 10px 0;
         border-radius: 10px;
+    }
+    .upper-todo-item{
+        display: flex;
+        justify-content: space-between;
+    }
+    .lower-todo-item{
+        display: flex;
+        margin-top: 10px;
     }
 
     .editTitle{
@@ -230,6 +266,36 @@ export default {
 
     .filterActive{
         background-color: #66cdaa;
+    }
+
+    .tagName{
+        position: relative;
+        background-color: #eee;
+        padding: 5px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        color: #aaa;
+        max-height: 20px;
+    }
+
+    .tag:hover .deleteIcon{
+        opacity: 1;
+    }
+    .deleteIcon{
+        font-size: 10px;
+        justify-content: center;
+        position: relative;
+        display: inline-flex;
+        transition: .3s;
+        background-color: #ff6347;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        position: relative;
+        bottom: 8px;
+        right: 8px;
+        cursor: pointer;
+        opacity: 0;
     }
 
 </style>
