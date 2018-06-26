@@ -1,8 +1,8 @@
 <template>
     <div class="todo">
-        <input type="text" class="todo-input" placeholder="What do I do today?" v-model="newTodo" @keyup.enter="addTodo" >
+        <input type="text" class="todo-input" placeholder="What do I do #today?" v-model="newTodo" @keyup.enter="addTodo" >
         <div class="todo-list">
-            <div class="single-todo" v-for="(todo, deleteID) in filteredTodos" :key="todo.id">
+            <div class="single-todo" v-for="(todo, deleteID) in filteredByTags" :key="todo.id">
                 <div class="upper-todo-item">
                     <div>
                         <div class="check uncheck" @click="uncheck(todo)" v-if="todo.completed">
@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="lower-todo-item">
-                    <div class="tag" v-for="(tag, deleteTagID) in todo.tags" >
+                    <div class="tag" v-for="(tag, deleteTagID) in todo.tags" v-on:click="showTodosTagFiltered(tag)">
                         <span class="tagName"> {{tag}} </span>
                         <div class="deleteIcon" v-on:click="deleteTag(deleteID, deleteTagID)"><i class="fas fa-times"></i></div>
                     </div>
@@ -37,6 +37,8 @@
         <button class="filter" v-on:click="showTodosFiltered('all')" :class="{filterActive : this.showTodos=='all'}"><i class="fas fa-filter"></i> <span>All</span></button>
         <button class="filter" v-on:click="showTodosFiltered('active')" :class="{filterActive : this.showTodos=='active'}"><i class="fas fa-filter"></i> <span>To do</span></button>
         <button class="filter" v-on:click="showTodosFiltered('done')" :class="{filterActive : this.showTodos=='done'}"><i class="fas fa-filter"></i>  <span>Done</span></button>
+        
+        <button class="filter" v-on:click="showTodosTagFiltered('')" :class="{filterActive : this.showTodosByTag != ''}"><i class="fas fa-filter" ></i> <span>{{this.showTodosByTag}}</span></button>
     
     </div>
    
@@ -51,20 +53,21 @@ export default {
             temporaryId: 3, //next unique id
             preventEmptyEdit: '',
             showTodos: 'all',
+            showTodosByTag: '',
             todos: [
                 {
                     'id': 1,
                     'title': 'Take over the world',
                     'completed': false,
                     'editable': false,
-                    'tags': ['main', 'kek', 'asap'],
+                    'tags': [' #main', ' #kek', ' #asap'],
                 },
                 {
                     'id': 2,
                     'title': 'Find a job',
                     'completed': false,
                     'editable': false,
-                    'tags': ['main', 'asap', '15k'],
+                    'tags': [' #main', ' #asap', ' #15k'],
                 },
             ]
         }
@@ -78,22 +81,21 @@ export default {
 
             //regular expresion for tags
             let regexTag = /( #[a-zA-z0-9]*)/gs;
-            let tagarray;
-            let tags;
-            //check tags 
-           while((tagarray = regexTag.exec(this.newTodo))!=null){
-                tagarray = tagarray[0];
-                console.log(tagarray);
-            }
-                           
-               this.todos.push({
+           
+            //check tags and split input to tags array
+            let tags = this.newTodo.trim().split(regexTag);
+            let tagarr = tags.filter(tag => tag.includes("#"));
+
+            //update todos array with new todo
+            this.todos.push({
+                //id later imported from db
                 id: this.temporaryId,
-                //input is linked to newTodo 
-                title: this.newTodo,
+                //input is linked to newTodo, and delete tags from input
+                title: this.newTodo.replace(regexTag, ''),
                 completed: false,
                 editable: false,
-                tags: tagarray,
-               })
+                tags: tagarr,
+            })
             this.newTodo = '';
             this.temporaryId +=1; 
         },
@@ -120,6 +122,10 @@ export default {
         showTodosFiltered(filter){
             this.showTodos = filter;
         },
+
+        showTodosTagFiltered(tagFilter){
+            this.showTodosByTag = tagFilter;
+        },
         deleteTag(deleteID, deleteTagID){
             this.todos[deleteID].tags.splice(deleteTagID, 1);
         },
@@ -136,11 +142,11 @@ export default {
            }
        },
        filteredByTags(){
-           //TODO
-           //get to tags
-            let todo = this.todos.map(todo => todo.tags);
-            let tags = todo.toString();
-            return tags;
+          //check tag name
+          if(this.showTodosByTag === ''){
+              return this.filteredTodos;
+          } else
+          return this.filteredTodos.filter(todo => todo.tags.some(tag => tag === this.showTodosByTag));
        }
     },
     directives: {
@@ -211,7 +217,7 @@ export default {
         font-size: 18px;
         color: #2c3e50;
         border: none;
-        padding: 0px 5px;
+        padding: 0px;
     }
 
     .deleteButton{
@@ -266,6 +272,10 @@ export default {
 
     .filterActive{
         background-color: #66cdaa;
+    }
+
+    .tag{
+        cursor: pointer;
     }
 
     .tagName{
