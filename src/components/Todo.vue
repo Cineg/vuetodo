@@ -28,7 +28,7 @@
                 </div>
                 <div class="lower-todo-item">
                     <div class="tag" v-for="(tag, deleteTagID) in todo.tags" v-on:click="showTodosTagFiltered(tag)">
-                        <span class="tagName"> {{tag}} </span>
+                        <span class="tagName" :class="{tagActive: showTodosByTag == tag}"> {{tag}} </span>
                         <div class="deleteIcon" v-on:click="deleteTag(deleteID, deleteTagID)"><i class="fas fa-times"></i></div>
                     </div>
                 </div>
@@ -143,6 +143,11 @@ export default {
         },
 
         showTodosTagFiltered(tagFilter){
+            //if tag is selected and clicked again, delete filter
+            if(this.showTodosByTag == tagFilter){
+                tagFilter = '';
+                this.showTodosByTag = tagFilter;
+            } else
             this.showTodosByTag = tagFilter;
         },
         deleteTag(deleteID, deleteTagID){
@@ -196,6 +201,7 @@ export default {
     .todo{
         width: 600px;
         margin: 0 auto;
+        margin-top: 60px;
     }
     .todo-input{
         width: 100%;
@@ -320,6 +326,12 @@ export default {
         font-size: 10px;
         color: #aaa;
         max-height: 20px;
+    }
+
+    .tagActive{
+        background-color: #66cdaa;
+        color: white;
+        transition: 0.3s;
     }
 
     .tag:hover .deleteIcon{
