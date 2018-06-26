@@ -38,7 +38,7 @@
         <button class="filter" v-on:click="showTodosFiltered('active')" :class="{filterActive : this.showTodos=='active'}"><i class="fas fa-filter"></i> <span>To do</span></button>
         <button class="filter" v-on:click="showTodosFiltered('done')" :class="{filterActive : this.showTodos=='done'}"><i class="fas fa-filter"></i>  <span>Done</span></button>
         
-        <button class="filter" v-on:click="showTodosTagFiltered('')" :class="{filterActive : this.showTodosByTag != ''}"><i class="fas fa-filter" ></i> <span>{{this.showTodosByTag}}</span></button>
+        <button class="filter filterTags" v-if="this.showTodosByTag != ''" v-on:click="showTodosTagFiltered('')" :class="{filterActive : this.showTodosByTag != ''}"><i class="fas fa-filter" ></i> <span>{{this.showTodosByTag}}</span></button>
     
     </div>
    
@@ -116,6 +116,25 @@ export default {
             if(todo.title.trim().length == 0){
                 todo.title = this.preventEmptyEdit;
             }
+
+            // --- TAGS --- //
+
+            let regexTag = /( #[a-zA-z0-9]*)/gs;
+            //check tags and split input to tags array
+           
+            let tags = todo.title.trim().split(regexTag);
+            let tagarr = tags.filter(tag => tag.includes("#"));
+            
+            //remove tags from edited title
+            todo.title = todo.title.replace(regexTag, ''),
+            
+            //add new tags to the array 
+            tagarr.forEach(tag => {
+              todo.tags.push(tag);
+            });
+
+            // --- TAGS --- //
+
             todo.editable = false;
             this.preventEmptyEdit = '';
         },
@@ -138,14 +157,17 @@ export default {
                //return if is not completed
                return this.todos.filter(todo => !todo.completed)
            } else if(this.showTodos == 'done'){
+               //return completed
                return this.todos.filter(todo => todo.completed)
            }
        },
        filteredByTags(){
           //check tag name
+          //if tag name is empty return filteredTodos
           if(this.showTodosByTag === ''){
               return this.filteredTodos;
           } else
+          //return filteredTodos(if done, active etc) and combine tags to this
           return this.filteredTodos.filter(todo => todo.tags.some(tag => tag === this.showTodosByTag));
        }
     },
@@ -213,8 +235,13 @@ export default {
         margin-top: 10px;
     }
 
+    .todoTitle{
+        max-width: 350px;
+    }
+
     .editTitle{
         font-size: 18px;
+        width: 350px;
         color: #2c3e50;
         border: none;
         padding: 0px;
@@ -272,6 +299,13 @@ export default {
 
     .filterActive{
         background-color: #66cdaa;
+    }
+
+    .filterTags{
+        transition: ease-in-out 0.5s;
+    }
+    .filterTags:hover{
+        background-color: #ff6347;
     }
 
     .tag{
