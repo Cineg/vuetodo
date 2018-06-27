@@ -27,8 +27,8 @@
                     </div>
                 </div>
                 <div class="lower-todo-item">
-                    <div class="tag" v-for="(tag, deleteTagID) in todo.tags" v-on:click="showTodosTagFiltered(tag)">
-                        <span class="tagName" :class="{tagActive: showTodosByTag == tag}"> {{tag}} </span>
+                    <div class="tag" v-for="(tag, deleteTagID) in todo.tags" >
+                        <span class="tagName" :class="{tagActive: showTodosByTag == tag}" v-on:click="showTodosTagFiltered(tag)"> {{tag}} </span>
                         <div class="deleteIcon" v-on:click="deleteTag(deleteID, deleteTagID)"><i class="fas fa-times"></i></div>
                     </div>
                 </div>
@@ -108,7 +108,6 @@ export default {
                    }
                 })
             })
-            
         },
         check(todo){
             todo.completed = true;
@@ -258,7 +257,6 @@ export default {
     .todo{
         width: 600px;
         margin: 0 auto;
-        margin-top: 60px;
     }
     .todo-input{
         width: 100%;

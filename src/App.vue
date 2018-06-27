@@ -1,6 +1,12 @@
 <template>
   <div id="app">
     <!-- <NavigationBar /> -->
+    <div class="logo">
+      <div class="cloud">
+        <i class="fas fa-cloud"></i>
+      </div>
+
+    </div>
     <Todo />
   </div>
 </template>
@@ -28,5 +34,31 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+.logo{
+  background-image: url(./assets/logo.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-top: 60px;
+  height: 121px;
+  font-size: 70px;
+  color: white;
+}
+
+.cloud{
+  animation-name: cloud;
+  animation-duration: 20s;
+  animation-delay: 5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes cloud{
+  0% {
+    margin-left: 300px;
+  }  
+  100%{
+    margin-right: 300px;
+  }
 }
 </style>
