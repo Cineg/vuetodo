@@ -1,13 +1,26 @@
 <template>
   <div id="app">
     <!-- <NavigationBar /> -->
-    <div class="logo">
+    <div class="logo sun" v-if="logo == 'sun'"> 
       <div class="cloud">
         <i class="fas fa-cloud"></i>
       </div>
-
+    </div>
+    <div class="logo eveningSun" v-else-if="logo == 'eveningSun'"> 
+      <div class="cloud">
+        <i class="fas fa-cloud" ></i>
+      </div>
+    </div>
+    <div class="logo moon" v-else> 
+      <div class="cloud">
+        <i class="fas fa-cloud"></i>
+      </div>
     </div>
     <Todo />
+
+    <!--Workaround I came up with to get computed property update data, therefore logo -->
+    <span class="invisible">{{computedLogo}}</span>
+
   </div>
 </template>
 
@@ -20,7 +33,30 @@ export default {
   components: {
     Todo,
     NavigationBar,
-  }
+  },
+  data(){
+    return{
+      logo: 'eveningSun',
+    }
+  },
+  computed: {
+    computedLogo(){
+      let time = new Date;
+      let hours = time.getHours();
+
+      if (hours > 6 && hours < 16){
+        this.logo = 'sun';
+        return 'sun';
+      } else if(hours > 18 && hours < 20 ){
+        this.logo = 'eveningSun';
+        return 'eveningSun';
+      }
+      else{
+        this.logo = 'moon';
+        return 'moon';
+      }
+    }
+  },
 }
 </script>
 
@@ -37,20 +73,34 @@ export default {
 }
 
 .logo{
-  background-image: url(./assets/logo.png);
   background-repeat: no-repeat;
   background-position: center;
   margin-top: 60px;
   height: 121px;
+  width: 400px;
   font-size: 70px;
   color: white;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .cloud{
   animation-name: cloud;
   animation-duration: 20s;
-  animation-delay: 5s;
   animation-iteration-count: infinite;
+}
+
+.sun{
+  background-image: url('./assets/sun.png');
+}
+.eveningSun{
+  background-image: url('./assets/evening.png');
+}
+.moon{
+  background-image: url('./assets/moon.png');
+}
+.invisible{
+display: none;
 }
 
 @keyframes cloud{
@@ -58,7 +108,7 @@ export default {
     margin-left: 300px;
   }  
   100%{
-    margin-right: 300px;
+    margin-right: 400px;
   }
 }
 </style>
