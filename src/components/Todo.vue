@@ -59,7 +59,7 @@ export default {
         }
     },
     created(){
-        db.collection('todos').get().then(querySnapshot => {
+        db.collection('todos').orderBy('title').get().then(querySnapshot => {
             querySnapshot.forEach(doc => {
                 const data = {
                 'id': doc.id,
@@ -100,48 +100,76 @@ export default {
             this.newTodo = ''; 
         },
         deleteTodo(deleteID){
-            this.todos.splice(deleteID, 1);
+            /* --- Removing from DB, need to add refresh to todolist -- */
             db.collection('todos').get().then(querySnapshot => {
                 querySnapshot.forEach(doc => {
-                    doc.ref.delete();
+                   if(doc.ref.id == this.todos[deleteID].id){
+                       doc.ref.delete();
+                   }
                 })
-                this.todos.push(data);
             })
+            
         },
         check(todo){
             todo.completed = true;
+            //push data to db
+            db.collection('todos').get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    if(doc.ref.id == todo.id){
+                        doc.ref.update(todo);
+                    }
+                })
+            })
         },
         uncheck(todo){
             todo.completed = false;
+            db.collection('todos').get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    if(doc.ref.id == todo.id){
+                        doc.ref.update(todo);
+                    }
+                })
+            })
         },
         editTodo(todo){
             this.preventEmptyEdit = todo.title;
             todo.editable = true;
         },
         doneEdit(todo){
-
             if(todo.title.trim().length == 0){
                 todo.title = this.preventEmptyEdit;
             }
-
             // --- TAGS --- //
-
             let regexTag = /( #[a-zA-z0-9]*)/gs;
             //check tags and split input to tags array
            
             let tags = todo.title.trim().split(regexTag);
             let tagarr = tags.filter(tag => tag.includes("#"));
             
+            // --- TAGS --- //
+
             //remove tags from edited title
-            todo.title = todo.title.replace(regexTag, ''),
-            
+            todo.title = todo.title.replace(regexTag, '');
+            //this will be replaced in db
+            let data = {
+                title: todo.title.replace(regexTag, ''),
+                tags: todo.tags,
+            }
             //add new tags to the array 
             tagarr.forEach(tag => {
-              todo.tags.push(tag);
+              data.tags.push(tag);
             });
+            //push data to db
+            db.collection('todos').get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    if(doc.ref.id == todo.id){
+                        doc.ref.update(data);
+                    }
+                })
+            })
 
-        
-            // --- TAGS --- //
+            //refresh todos
+            this.todos.push();
 
             todo.editable = false;
             this.preventEmptyEdit = '';
@@ -158,8 +186,19 @@ export default {
             } else
             this.showTodosByTag = tagFilter;
         },
-        deleteTag(deleteID, deleteTagID){
+        deleteTag(deleteID, deleteTagID){             
+           //check what is doing what
+           //console.log(this.todos[deleteID], deleteID,  this.todos[deleteID].tags[deleteTagID], deleteTagID);
+
             this.todos[deleteID].tags.splice(deleteTagID, 1);
+
+            db.collection('todos').get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    if(doc.ref.id == this.todos[deleteID].id){
+                        doc.ref.update(this.todos[deleteID]);
+                    }
+                })
+            })
         },
     },
     computed: {
