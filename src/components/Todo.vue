@@ -45,32 +45,33 @@
 </template>
 
 <script>
+import db from './firebaseInit'
+
 export default {
     name: 'Todo',
     data(){
         return{
             newTodo: '',
-            temporaryId: 3, //next unique id
             preventEmptyEdit: '',
             showTodos: 'all',
             showTodosByTag: '',
-            todos: [
-                {
-                    'id': 1,
-                    'title': 'Take over the world',
-                    'completed': false,
-                    'editable': false,
-                    'tags': [' #main', ' #kek', ' #asap'],
-                },
-                {
-                    'id': 2,
-                    'title': 'Find a job',
-                    'completed': false,
-                    'editable': false,
-                    'tags': [' #main', ' #asap', ' #15k'],
-                },
-            ]
+            todos: [],
         }
+    },
+    created(){
+        db.collection('todos').get().then(querySnapshot => {
+            querySnapshot.forEach(doc => {
+                const data = {
+                'id': doc.id,
+                'title': doc.data().title,
+                'completed': doc.data().completed,
+                'editable': doc.data().editable,
+                'tags': doc.data().tags,
+                }
+                this.todos.push(data);
+            })
+            
+        })
     },
     methods: {
         addTodo(){
@@ -86,21 +87,26 @@ export default {
             let tags = this.newTodo.trim().split(regexTag);
             let tagarr = tags.filter(tag => tag.includes("#"));
 
-            //update todos array with new todo
-            this.todos.push({
-                //id later imported from db
-                id: this.temporaryId,
+            let data = {
                 //input is linked to newTodo, and delete tags from input
                 title: this.newTodo.replace(regexTag, ''),
                 completed: false,
                 editable: false,
                 tags: tagarr,
-            })
-            this.newTodo = '';
-            this.temporaryId +=1; 
+            }
+            //update todos array with new todo
+            db.collection('todos').add(data).then(this.todos.push(data));
+            
+            this.newTodo = ''; 
         },
         deleteTodo(deleteID){
             this.todos.splice(deleteID, 1);
+            db.collection('todos').get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    doc.ref.delete();
+                })
+                this.todos.push(data);
+            })
         },
         check(todo){
             todo.completed = true;
@@ -113,6 +119,7 @@ export default {
             todo.editable = true;
         },
         doneEdit(todo){
+
             if(todo.title.trim().length == 0){
                 todo.title = this.preventEmptyEdit;
             }
@@ -133,6 +140,7 @@ export default {
               todo.tags.push(tag);
             });
 
+        
             // --- TAGS --- //
 
             todo.editable = false;
@@ -174,6 +182,16 @@ export default {
           } else
           //return filteredTodos(if done, active etc) and combine tags to this
           return this.filteredTodos.filter(todo => todo.tags.some(tag => tag === this.showTodosByTag));
+       },
+       tagList(){
+           //get list of tags 
+           let list = new Set();
+           this.todos.forEach(todo => {
+                todo.tags.forEach(tag => {
+                    list.add(tag);
+               })
+           });
+            return list;
        }
     },
     directives: {
