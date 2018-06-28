@@ -21,7 +21,7 @@
                             <i class="fas fa-pencil-alt"></i>
                         </button>
 
-                        <button class="deleteButton" @click="deleteTodo(deleteID)">
+                        <button class="deleteButton" @click="deleteTodo(todo)">
                             <i class="far fa-trash-alt"></i>
                         </button>
                     </div>
@@ -46,27 +46,33 @@
 
 <script>
 import db from './firebaseInit'
+import firebase from 'firebase'
 
 export default {
     name: 'Todo',
     data(){
         return{
+            createdBy: '',
             newTodo: '',
             preventEmptyEdit: '',
             showTodos: 'all',
             showTodosByTag: '',
+            deleted: false,
             todos: [],
         }
     },
     created(){
-        db.collection('todos').orderBy('title').get().then(querySnapshot => {
+        db.collection('todos').get().then(querySnapshot => {
             querySnapshot.forEach(doc => {
+
                 const data = {
+                'createdBy': doc.data().createdBy,
                 'id': doc.id,
                 'title': doc.data().title,
                 'completed': doc.data().completed,
                 'editable': doc.data().editable,
                 'tags': doc.data().tags,
+                'deleted': doc.data().deleted,
                 }
                 this.todos.push(data);
             })
@@ -92,20 +98,26 @@ export default {
                 title: this.newTodo.replace(regexTag, ''),
                 completed: false,
                 editable: false,
+                deleted: false,
                 tags: tagarr,
+                createdBy: firebase.auth().currentUser.email,
             }
             //update todos array with new todo
             db.collection('todos').add(data).then(this.todos.push(data));
             
             this.newTodo = ''; 
         },
-        deleteTodo(deleteID){
+        deleteTodo(todo){
+            todo.deleted = true;
             /* --- Removing from DB, need to add refresh to todolist -- */
             db.collection('todos').get().then(querySnapshot => {
                 querySnapshot.forEach(doc => {
-                   if(doc.ref.id == this.todos[deleteID].id){
-                       doc.ref.delete();
-                   }
+                   if(doc.ref.id == todo.id){
+                       doc.ref.update(todo);
+                       if(doc.ref.deleted == true){
+                           console.log(todo);
+                       }
+                    }
                 })
             })
             
@@ -202,18 +214,26 @@ export default {
         },
     },
     computed: {
-       filteredTodos(){
+        visible(){
+            return this.todos.filter(todo => {
+                return todo.createdBy === firebase.auth().currentUser.email;
+            });
+        },
+        notDeleted(){
+            return this.visible.filter(todo => !todo.deleted);
+        },
+        filteredTodos(){
            if(this.showTodos == 'all'){
-               return this.todos;
+               return this.notDeleted;
            } else if(this.showTodos == 'active'){
                //return if is not completed
-               return this.todos.filter(todo => !todo.completed)
+               return this.notDeleted.filter(todo => !todo.completed)
            } else if(this.showTodos == 'done'){
                //return completed
-               return this.todos.filter(todo => todo.completed)
+               return this.notDeleted.filter(todo => todo.completed)
            }
        },
-       filteredByTags(){
+        filteredByTags(){
           //check tag name
           //if tag name is empty return filteredTodos
           if(this.showTodosByTag === ''){
@@ -222,7 +242,7 @@ export default {
           //return filteredTodos(if done, active etc) and combine tags to this
           return this.filteredTodos.filter(todo => todo.tags.some(tag => tag === this.showTodosByTag));
        },
-       tagList(){
+        tagList(){
            //get list of tags 
            let list = new Set();
            this.todos.forEach(todo => {
