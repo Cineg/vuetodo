@@ -35,10 +35,10 @@ export default {
             let time = new Date;
             let hours = time.getHours();
 
-            if (hours > 6 && hours < 16){
+            if (hours > 6 && hours < 18){
                 this.logo = 'sun';
                 return 'sun';
-            } else if(hours > 18 && hours < 20 ){
+            } if(hours >= 18 && hours <= 21 ){
                 this.logo = 'eveningSun';
                 return 'eveningSun';
             }
