@@ -4,7 +4,7 @@
         <div class="todo-list">
             <div class="single-todo" v-for="(todo, deleteID) in filteredByTags" :key="todo.id">
                 <div class="upper-todo-item">
-                    <div>
+                    <div class="titleAndCheck">
                         <div class="check uncheck" @click="uncheck(todo)" v-if="todo.completed">
                         <i class="fas fa-times"></i></div>
                         <div class="check" @click="check(todo)" v-else><i class="fas fa-check"></i></div>
@@ -13,7 +13,7 @@
                         <input type="text" v-model="todo.title" v-if="todo.editable" @blur="doneEdit(todo)" @keyup.enter="doneEdit(todo)" class="editTitle" v-focus>
                     </div>
 
-                    <div>
+                    <div class="buttons">
                         <button class="editButton" v-on:click="editTodo(todo)" v-if="!todo.editable">
                             <i class="fas fa-pencil-alt"></i>
                         </button>
@@ -34,12 +34,13 @@
                 </div>
             </div>
         </div>
-        <button class="filter" v-on:click="showTodosFiltered('all')" :class="{filterActive : this.showTodos=='all'}"><i class="fas fa-filter"></i> <span>All</span></button>
-        <button class="filter" v-on:click="showTodosFiltered('active')" :class="{filterActive : this.showTodos=='active'}"><i class="fas fa-filter"></i> <span>To do</span></button>
-        <button class="filter" v-on:click="showTodosFiltered('done')" :class="{filterActive : this.showTodos=='done'}"><i class="fas fa-filter"></i>  <span>Done</span></button>
-        
-        <button class="filter filterTags" v-if="this.showTodosByTag != ''" v-on:click="showTodosTagFiltered('')" :class="{filterActive : this.showTodosByTag != ''}"><i class="fas fa-filter" ></i> <span>{{this.showTodosByTag}}</span></button>
-    
+        <div class="filters">
+            <button class="filter" v-on:click="showTodosFiltered('all')" :class="{filterActive : this.showTodos=='all'}"><i class="fas fa-filter"></i> <span>All</span></button>
+            <button class="filter" v-on:click="showTodosFiltered('active')" :class="{filterActive : this.showTodos=='active'}"><i class="fas fa-filter"></i> <span>To do</span></button>
+            <button class="filter" v-on:click="showTodosFiltered('done')" :class="{filterActive : this.showTodos=='done'}"><i class="fas fa-filter"></i>  <span>Done</span></button>
+            
+            <button class="filter filterTags" v-if="this.showTodosByTag != ''" v-on:click="showTodosTagFiltered('')" :class="{filterActive : this.showTodosByTag != ''}"><i class="fas fa-filter" ></i> <span>{{this.showTodosByTag}}</span></button>
+        </div>
     </div>
    
 </template>
@@ -114,13 +115,9 @@ export default {
                 querySnapshot.forEach(doc => {
                    if(doc.ref.id == todo.id){
                        doc.ref.update(todo);
-                       if(doc.ref.deleted == true){
-                           console.log(todo);
-                       }
                     }
                 })
             })
-            
         },
         check(todo){
             todo.completed = true;
@@ -268,6 +265,10 @@ export default {
     * {
         box-sizing: border-box;
     }
+
+
+
+
     button{
         min-width: 60px;
         border: none;
@@ -430,4 +431,58 @@ export default {
         opacity: 0;
     }
 
+
+
+    /* Mobiles */
+    @media screen and (max-width: 600px) {
+        .todo{
+            display: flex;
+            flex-direction: column;
+            width: 90vw;
+            margin: 0 auto;
+        }
+        .todo-input{
+            font-size: 18px;
+        }
+
+        .single-todo{
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .todoTitle{
+            text-overflow:clip;
+            width: 180px;
+        }
+        .editTitle{
+            font-size: 14px;
+            width: 80%;
+        }
+
+        button{
+            padding: 6px;
+            min-width: 30px;
+        }
+
+        .titleAndCheck{
+            width: 70%;
+            text-overflow:clip;
+        }
+        .buttons{
+            width: 65px;
+        }
+
+        .deleteButton{
+            margin: 0;
+        }
+
+        .tagName{
+            font-size: 9px;
+        }
+
+        .filter{
+            display: flex;
+            justify-content: center;
+        }
+    }
 </style>

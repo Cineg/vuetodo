@@ -2,6 +2,7 @@
     <div>
         <div class="container">
             <h3>Hello! Please, log in.</h3>
+            <p class="register-info">Don't have an account? Please <router-link to="/register">register.</router-link></p>
             <div class="login-form">
                 <form action="">
                     <div class="input-field">
@@ -60,6 +61,18 @@ export default {
         margin: 0 auto;
         padding: 30px;
         font-size: 40px;
+        padding-bottom: 10px;
+    }
+
+    .register-info{
+        margin: 0;
+        font-size: 12px;
+        padding-bottom: 10px;
+    }
+
+    .register-info a{
+        color: rgb(72, 182, 72);
+        text-decoration: none;
     }
 
     .login-form{
@@ -91,6 +104,18 @@ export default {
     .loginbutton{
         background-color: lightgreen;
         padding: 10px 20px;
+    }
+
+     @media screen and (max-width: 600px) {
+         .container{
+             width: 90vw;
+         }
+         .input-field{
+             width: 80vw;
+         }
+         .container h3{
+             font-size: 30px;
+         }
     }
 
 </style>

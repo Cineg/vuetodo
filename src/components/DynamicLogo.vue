@@ -57,7 +57,7 @@ export default {
     background-position: center;
     margin-top: 60px;
     height: 121px;
-    width: 400px;
+    width: 300px;
     font-size: 70px;
     color: white;
     margin-left: auto;
